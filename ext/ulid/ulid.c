@@ -254,8 +254,10 @@ ulid_decode(unsigned char ulid[16], const char *s)
     return 0;
 }
 
+// [SHOPIFY] extracted this function, just to provide an option that doesn't encode
+// and decode if we don't want the text format.
 void
-ulid_generate(struct ulid_generator *g, char str[27])
+ulid_generate_binary(struct ulid_generator *g)
 {
     unsigned long long ts = platform_utime(1) / 1000;
 
@@ -264,7 +266,6 @@ ulid_generate(struct ulid_generator *g, char str[27])
         for (int i = 15; i > 5; i--)
             if (++g->last[i])
                 break;
-        ulid_encode(str, g->last);
         return;
     }
 
@@ -288,6 +289,12 @@ ulid_generate(struct ulid_generator *g, char str[27])
     }
     if (g->flags & ULID_PARANOID)
         g->last[6] &= 0x7f;
+}
 
+void
+ulid_generate(struct ulid_generator *g, char str[27])
+{
+    ulid_generate_binary(g);
     ulid_encode(str, g->last);
 }
+

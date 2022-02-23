@@ -40,6 +40,10 @@ struct ulid_generator {
  */
 int  ulid_generator_init(struct ulid_generator *, int flags);
 
+/* Generate a new ULID without encoding the output. Read it from g->last.
+ */
+void ulid_generate_binary(struct ulid_generator *);
+
 /* Generate a new ULID.
  * A zero terminating byte is written to the output buffer.
  */

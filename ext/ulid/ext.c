@@ -20,6 +20,7 @@ VALUE rb_cULID_Generator;
 
 struct ulid_generator * default_generator = NULL;
 VALUE ulid_rb_generate_default(VALUE self);
+VALUE ulid_rb_generate_binary_default(VALUE self);
 
 VALUE ulid_generator_new(int argc, VALUE * argv, VALUE class)
 {
@@ -69,6 +70,39 @@ ulid_generator_generate(VALUE self)
   return rb_str_new(buf, 26);
 }
 
+static VALUE
+ulid_generator_generate_binary(VALUE self)
+{
+  struct ulid_generator * gen;
+  Data_Get_Struct(self, struct ulid_generator, gen);
+  ulid_generate_binary(gen);
+  return rb_str_new((const char *) gen->last, 15);
+}
+
+// decode. In: text(26); out: binary(15)
+static VALUE
+ulid_rb_decode(VALUE self, VALUE encoded)
+{
+  unsigned char out[16];
+  if (RSTRING_LEN(encoded) != 26) {
+    rb_raise(rb_eArgError, "text ULID must be 26 characters long");
+  }
+  ulid_decode(out, RSTRING_PTR(encoded));
+  return rb_str_new((char *) out, 15);
+}
+
+// encode. In: binary(15); out: text(26)
+static VALUE
+ulid_rb_encode(VALUE self, VALUE decoded)
+{
+  char out[27];
+  if (RSTRING_LEN(decoded) != 15) {
+    rb_raise(rb_eArgError, "binary ULID must be 15 characters long");
+  }
+  ulid_encode(out, (const unsigned char *) RSTRING_PTR(decoded));
+  return rb_str_new((char *) out, 26);
+}
+
 /*
  * Ruby C extensions are initialized by calling Init_<extname>.
  *
@@ -82,8 +116,12 @@ Init_ulid(void)
   rb_mULID = rb_define_module("ULID");
   rb_cULID_Generator = rb_define_class_under(rb_mULID, "Generator", rb_cObject);
 
+  rb_define_singleton_method(rb_mULID, "encode", ulid_rb_encode, 1);
+  rb_define_singleton_method(rb_mULID, "decode", ulid_rb_decode, 1);
+
   rb_define_singleton_method(rb_cULID_Generator, "new", ulid_generator_new, -1);
   rb_define_method(rb_cULID_Generator, "initialize", ulid_generator_initialize, -1);
+  rb_define_method(rb_cULID_Generator, "generate_binary", ulid_generator_generate_binary, 0);
   rb_define_method(rb_cULID_Generator, "generate", ulid_generator_generate, 0);
 
   rb_define_const(rb_mULID, "RELAXED", INT2NUM(ULID_RELAXED));
@@ -100,6 +138,7 @@ Init_ulid(void)
   }
 
   rb_define_singleton_method(rb_mULID, "generate", ulid_rb_generate_default, 0);
+  rb_define_singleton_method(rb_mULID, "generate_binary", ulid_rb_generate_binary_default, 0);
 }
 
 VALUE
@@ -108,4 +147,11 @@ ulid_rb_generate_default(VALUE self)
   char buf[27];
   ulid_generate(default_generator, buf);
   return rb_str_new(buf, 26);
+}
+
+VALUE
+ulid_rb_generate_binary_default(VALUE self)
+{
+  ulid_generate_binary(default_generator);
+  return rb_str_new((const char *) default_generator->last, 15);
 }
