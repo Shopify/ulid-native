@@ -1,0 +1,168 @@
+AllCops:
+  Exclude:
+    - 'vendor/**/*'
+    - 'tmp/**/*'
+  TargetRubyVersion: 2.4
+
+Bundler/OrderedGems:
+  Enabled: false
+
+Gemspec/OrderedDependencies:
+  Enabled: false
+
+Gemspec/DuplicatedAssignment:
+  Enabled: false
+
+Metrics/AbcSize:
+  Enabled: false
+
+Metrics/MethodLength:
+  Enabled: false
+
+Metrics/BlockLength:
+  Enabled: false
+
+Metrics/ClassLength:
+  Enabled: false
+
+Metrics/CyclomaticComplexity:
+  Enabled: false
+
+Metrics/ModuleLength:
+  Enabled: false
+
+Metrics/ParameterLists:
+  Enabled: false
+
+Metrics/PerceivedComplexity:
+  Enabled: false
+
+Naming/MethodName:
+  Exclude:
+    - 'test/**/*'
+
+Naming/RescuedExceptionsVariableName:
+  PreferredName: error
+
+Naming/VariableNumber:
+  Enabled: false
+
+Layout/MultilineMethodCallIndentation:
+  EnforcedStyle: indented
+
+Layout/EndAlignment:
+  EnforcedStyleAlignWith: start_of_line
+
+Layout/RescueEnsureAlignment:
+  Enabled: false
+
+Layout/FirstHashElementIndentation:
+  EnforcedStyle: consistent
+
+Layout/SpaceInsideHashLiteralBraces:
+  EnforcedStyle: no_space
+
+Layout/SpaceAroundMethodCallOperator:
+  Enabled: true
+
+Layout/LineLength:
+  Max: 120
+
+# This doesn't take into account retrying from an exception
+Lint/SuppressedException:
+  Enabled: false
+
+Lint/AssignmentInCondition:
+  AllowSafeAssignment: true
+
+Lint/UnusedMethodArgument:
+  AllowUnusedKeywordArguments: true
+
+Lint/RaiseException:
+  Enabled: true
+
+Lint/StructNewOverride:
+  Enabled: true
+
+Security/MarshalLoad:
+  Enabled: false
+
+Security/YAMLLoad:
+  Enabled: false
+
+# allow String.new to create mutable strings
+Style/EmptyLiteral:
+  Enabled: false
+
+Style/EmptyMethod:
+  Enabled: false
+
+# allow the use of globals which makes sense in a CLI app like this
+Style/GlobalVars:
+  Enabled: false
+
+Style/PercentLiteralDelimiters:
+  Enabled: false
+
+Style/TrailingCommaInHashLiteral:
+  EnforcedStyleForMultiline: comma
+
+Style/TrailingCommaInArrayLiteral:
+  EnforcedStyleForMultiline: comma
+
+Style/TrailingCommaInArguments:
+  EnforcedStyleForMultiline: comma
+
+Style/SymbolArray:
+  Enabled: false
+
+Style/StderrPuts:
+  Enabled: false
+
+Style/ModuleFunction:
+  Enabled: false
+
+Style/IfUnlessModifier:
+  Enabled: false
+
+Style/GuardClause:
+  Enabled: false
+
+Style/NumericPredicate:
+  Enabled: false
+
+Style/Alias:
+  EnforcedStyle: prefer_alias_method
+
+Style/Documentation:
+  Enabled: false
+
+Style/DoubleNegation:
+  Enabled: false
+
+Style/CommentedKeyword:
+  Enabled: false
+
+Style/Next:
+  Enabled: false
+
+Style/StringLiterals:
+  EnforcedStyle: double_quotes
+
+Style/HashEachMethods:
+  Enabled: true
+
+Style/HashTransformKeys:
+  Enabled: true
+
+Style/HashTransformValues:
+  Enabled: true
+
+Style/RedundantReturn:
+  Enabled: false
+
+Style/YodaCondition:
+  Enabled: false
+
+Style/ExponentialNotation:
+  Enabled: true
