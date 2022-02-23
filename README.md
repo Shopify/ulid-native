@@ -29,3 +29,6 @@ Flags can be zero or more (i.e. `a | b`) of:
 both the `Generator` class and the `ULID` module, and returns a binary
 representation. `ULID.encode` and `ULID.decode` exist to convert between these
 formats.
+
+On my machine (a 2021 M1 Macbook Pro), generating the `generate` with default
+flags takes 100ns, and `generate_binary` takes 50ns.
