@@ -7,7 +7,8 @@ For simple single-threaded use, you can call `ULID.generate` to generate a ULID.
 For multi-threaded use, or if you care about the generator mode, use:
 
 ```ruby
-gen = ULID::Generator.new(format, flags = 0)
+# gen = ULID::Generator.new(format, flags = 0)
+gen = ULID::Generator.new(ULID::FORMAT_LEX62)
 gen.generate
 ```
 
