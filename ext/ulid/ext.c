@@ -1,6 +1,7 @@
 #include "ext.h"
 #include "ulid.h"
 #include "ruby.h"
+#include "ruby/encoding.h"
 #include <stdint.h>
 #include <stdbool.h>
 #include <sys/types.h>
@@ -17,6 +18,7 @@
 
 VALUE rb_mULID;
 VALUE rb_cULID_Generator;
+rb_encoding * encoding_binary;
 
 struct ulid_generator * default_generator = NULL;
 VALUE ulid_rb_generate_default(VALUE self);
@@ -76,10 +78,10 @@ ulid_generator_generate_binary(VALUE self)
   struct ulid_generator * gen;
   Data_Get_Struct(self, struct ulid_generator, gen);
   ulid_generate_binary(gen);
-  return rb_str_new((const char *) gen->last, 15);
+  return rb_enc_str_new((const char *) gen->last, 16, encoding_binary);
 }
 
-// decode. In: text(26); out: binary(15)
+// decode. In: text(26); out: binary(16)
 static VALUE
 ulid_rb_decode(VALUE self, VALUE encoded)
 {
@@ -88,16 +90,16 @@ ulid_rb_decode(VALUE self, VALUE encoded)
     rb_raise(rb_eArgError, "text ULID must be 26 characters long");
   }
   ulid_decode(out, RSTRING_PTR(encoded));
-  return rb_str_new((char *) out, 15);
+  return rb_str_new((char *) out, 16);
 }
 
-// encode. In: binary(15); out: text(26)
+// encode. In: binary(16); out: text(26)
 static VALUE
 ulid_rb_encode(VALUE self, VALUE decoded)
 {
   char out[27];
-  if (RSTRING_LEN(decoded) != 15) {
-    rb_raise(rb_eArgError, "binary ULID must be 15 characters long");
+  if (RSTRING_LEN(decoded) != 16) {
+    rb_raise(rb_eArgError, "binary ULID must be 16 characters long");
   }
   ulid_encode(out, (const unsigned char *) RSTRING_PTR(decoded));
   return rb_str_new((char *) out, 26);
@@ -113,6 +115,8 @@ ulid_rb_encode(VALUE self, VALUE decoded)
 void
 Init_ulid(void)
 {
+  encoding_binary = rb_enc_find("binary");
+
   rb_mULID = rb_define_module("ULID");
   rb_cULID_Generator = rb_define_class_under(rb_mULID, "Generator", rb_cObject);
 
@@ -153,5 +157,5 @@ VALUE
 ulid_rb_generate_binary_default(VALUE self)
 {
   ulid_generate_binary(default_generator);
-  return rb_str_new((const char *) default_generator->last, 15);
+  return rb_enc_str_new((const char *) default_generator->last, 16, encoding_binary);
 }
