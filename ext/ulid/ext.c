@@ -18,8 +18,7 @@ static VALUE ulid_rb_generate_text_default(VALUE self);
 static VALUE ulid_rb_generate_binary_default(VALUE self);
 static VALUE ulid_rb_generate_lex62_default(VALUE self);
 
-static __uint128_t last_as_int(struct ulid_generator * gen);
-int lex62_encode(char d[LEX62_WIDTH], __uint128_t val);
+int lex62_encode(char out[LEX62_WIDTH], const unsigned char in[16]);
 
 static VALUE
 ulid_generator_new(int argc, VALUE * argv, VALUE class)
@@ -81,9 +80,8 @@ ulid_generator_generate(VALUE self)
   } else if (fmt == fmt_binary) {
     return rb_enc_str_new((const char *) gen->last, 16, encoding_binary);
   } else if (fmt == fmt_lex62) {
-    __uint128_t last = last_as_int(gen);
     char buf[LEX62_WIDTH];
-    if (0 != lex62_encode(buf, last)) {
+    if (0 != lex62_encode(buf, gen->last)) {
       rb_raise(rb_eRuntimeError, "could not encode ULID as lex62 due to value overflow");
     }
     VALUE what = rb_str_new(buf, LEX62_WIDTH);
@@ -183,40 +181,36 @@ static VALUE
 ulid_rb_generate_lex62_default(VALUE self)
 {
   ulid_generate_binary(default_generator);
-  __uint128_t last = last_as_int(default_generator);
   char buf[LEX62_WIDTH];
-  if (0 != lex62_encode(buf, last)) {
+  if (0 != lex62_encode(buf, default_generator->last)) {
     rb_raise(rb_eRuntimeError, "could not encode ULID as lex62 due to value overflow");
   }
   return rb_str_new(buf, LEX62_WIDTH);
 }
 
-static __uint128_t
-last_as_int(struct ulid_generator * gen)
-{
-  __uint128_t ret = 0;
-  int i;
-  for (i = 0; i < 16; i++) {
-    ret <<= 8;
-    ret |= gen->last[i];
-  }
-  return ret;
-}
-
 static const char LEX62_CHARSET[] = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
 
 int
-lex62_encode(char d[LEX62_WIDTH], __uint128_t val)
+lex62_encode(char out[LEX62_WIDTH], const unsigned char in[16])
 {
+  __uint128_t val = 0;
   __uint128_t quot;
   int rem;
-  for(int i = 0; i < LEX62_WIDTH; i++) {
+  int i;
+
+  for (i = 0; i < 16; i++) {
+    val <<= 8;
+    val |= in[i];
+  }
+
+  for(i = 0; i < LEX62_WIDTH; i++) {
     // there's no div/lldiv for uint128_t that I could find. This way is faster
     // than doing both / and %.
     quot = val / 62;
     rem = (int)(val - (quot * 62)); 
-    d[LEX62_WIDTH-i-1] = LEX62_CHARSET[rem];
+    out[LEX62_WIDTH-i-1] = LEX62_CHARSET[rem];
     val = quot;
   }
+
   return (int) val; // should be 0 unless we overflowed
 }
