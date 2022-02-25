@@ -297,4 +297,3 @@ ulid_generate(struct ulid_generator *g, char str[27])
     ulid_generate_binary(g);
     ulid_encode(str, g->last);
 }
-

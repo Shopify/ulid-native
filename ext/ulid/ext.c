@@ -208,10 +208,15 @@ static const char LEX62_CHARSET[] = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefg
 int
 lex62_encode(char d[LEX62_WIDTH], __uint128_t val)
 {
+  __uint128_t quot;
+  int rem;
   for(int i = 0; i < LEX62_WIDTH; i++) {
-    d[LEX62_WIDTH-i-1] = LEX62_CHARSET[(int)(val % 62)];
-    val /= 62;
+    // there's no div/lldiv for uint128_t that I could find. This way is faster
+    // than doing both / and %.
+    quot = val / 62;
+    rem = (int)(val - (quot * 62)); 
+    d[LEX62_WIDTH-i-1] = LEX62_CHARSET[rem];
+    val = quot;
   }
   return (int) val; // should be 0 unless we overflowed
 }
-

@@ -36,4 +36,4 @@ On my machine (a 2021 M1 Macbook Pro):
 
 * `ULID::FORMAT_BINARY` generates in about 50ns;
 * `ULID::FORMAT_TEXT` generates in about 100ns;
-* `ULID::FORMAT_LEX62` generates in about 5000ns;
+* `ULID::FORMAT_LEX62` generates in about 3000ns;
