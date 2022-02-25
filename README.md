@@ -29,12 +29,7 @@ Flags can be zero or more (i.e. `a | b`) of:
 * `ULID::SECURE`: doesn't fall back on generated entropy for initialization if
   system entropy could not be gathered. An error is raised instead.
 
-## Binary and Text Encoding
-
-`generate` returns a text-formatted ULID, but `generate_binary` also exists on
-both the `Generator` class and the `ULID` module, and returns a binary
-representation. `ULID.encode` and `ULID.decode` exist to convert between these
-formats.
+## Benchmarks
 
 On my machine (a 2021 M1 Macbook Pro):
 
