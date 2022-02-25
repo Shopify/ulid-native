@@ -2,19 +2,6 @@
 #include "ulid.h"
 #include "ruby.h"
 #include "ruby/encoding.h"
-#include <stdint.h>
-#include <stdbool.h>
-#include <sys/types.h>
-#include <errno.h>
-#include <fcntl.h>
-#include <sys/stat.h>
-#ifndef _WIN32
-#include <sys/utsname.h>
-#endif
-#ifdef __GLIBC__
-#include <gnu/libc-version.h>
-#endif
-#include <stdlib.h>
 
 VALUE rb_mULID;
 VALUE rb_cULID_Generator;
