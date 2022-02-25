@@ -7,9 +7,15 @@ For simple single-threaded use, you can call `ULID.generate` to generate a ULID.
 For multi-threaded use, or if you care about the generator mode, use:
 
 ```ruby
-gen = ULID::Generator.new(flags)
+gen = ULID::Generator.new(format, flags = 0)
 gen.generate
 ```
+
+Format must be one of:
+
+* `ULID::FORMAT_TEXT`: the default Base32 ULID format (26 bytes)
+* `ULID::FORMAT_BINARY`: Raw binary ULID (15 bytes)
+* `ULID::FORMAT_LEX62`: Lexicographically-ordered Base62 (21 bytes)
 
 Flags can be zero or more (i.e. `a | b`) of:
 
@@ -30,5 +36,8 @@ both the `Generator` class and the `ULID` module, and returns a binary
 representation. `ULID.encode` and `ULID.decode` exist to convert between these
 formats.
 
-On my machine (a 2021 M1 Macbook Pro), generating the `generate` with default
-flags takes 100ns, and `generate_binary` takes 50ns.
+On my machine (a 2021 M1 Macbook Pro):
+
+* `ULID::FORMAT_BINARY` generates in about 50ns;
+* `ULID::FORMAT_TEXT` generates in about 100ns;
+* `ULID::FORMAT_LEX62` generates in about 5000ns;
