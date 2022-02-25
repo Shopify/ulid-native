@@ -3,19 +3,26 @@
 #include "ruby.h"
 #include "ruby/encoding.h"
 
-VALUE rb_mULID;
-VALUE rb_cULID_Generator;
-rb_encoding * encoding_binary;
+#define LEX62_WIDTH 21
 
-VALUE fmt_text;
-VALUE fmt_binary;
-VALUE fmt_lex62;
+static VALUE rb_mULID;
+static VALUE rb_cULID_Generator;
+static rb_encoding * encoding_binary;
+
+static VALUE fmt_text;
+static VALUE fmt_binary;
+static VALUE fmt_lex62;
 
 struct ulid_generator * default_generator = NULL;
-VALUE ulid_rb_generate_text_default(VALUE self);
-VALUE ulid_rb_generate_binary_default(VALUE self);
+static VALUE ulid_rb_generate_text_default(VALUE self);
+static VALUE ulid_rb_generate_binary_default(VALUE self);
+static VALUE ulid_rb_generate_lex62_default(VALUE self);
 
-VALUE ulid_generator_new(int argc, VALUE * argv, VALUE class)
+static __uint128_t last_as_int(struct ulid_generator * gen);
+int lex62_encode(char d[LEX62_WIDTH], __uint128_t val);
+
+static VALUE
+ulid_generator_new(int argc, VALUE * argv, VALUE class)
 {
   VALUE format = Qnil;
   VALUE flag = Qnil;
@@ -42,7 +49,8 @@ VALUE ulid_generator_new(int argc, VALUE * argv, VALUE class)
   return tdata;
 }
 
-VALUE ulid_generator_initialize(int argc, VALUE * argv, VALUE self)
+static VALUE
+ulid_generator_initialize(int argc, VALUE * argv, VALUE self)
 {
   // flag is first arg, or default zero
   VALUE format = Qnil;
@@ -73,7 +81,13 @@ ulid_generator_generate(VALUE self)
   } else if (fmt == fmt_binary) {
     return rb_enc_str_new((const char *) gen->last, 16, encoding_binary);
   } else if (fmt == fmt_lex62) {
-    rb_raise(rb_eRuntimeError, "not implemented yet");
+    __uint128_t last = last_as_int(gen);
+    char buf[LEX62_WIDTH];
+    if (0 != lex62_encode(buf, last)) {
+      rb_raise(rb_eRuntimeError, "could not encode ULID as lex62 due to value overflow");
+    }
+    VALUE what = rb_str_new(buf, LEX62_WIDTH);
+    return what;
   }
   rb_raise(rb_eRuntimeError, "unknown output format");
 }
@@ -147,9 +161,10 @@ Init_ulid(void)
 
   rb_define_singleton_method(rb_mULID, "generate_text", ulid_rb_generate_text_default, 0);
   rb_define_singleton_method(rb_mULID, "generate_binary", ulid_rb_generate_binary_default, 0);
+  rb_define_singleton_method(rb_mULID, "generate_lex62", ulid_rb_generate_lex62_default, 0);
 }
 
-VALUE
+static VALUE
 ulid_rb_generate_text_default(VALUE self)
 {
   char buf[27];
@@ -157,9 +172,46 @@ ulid_rb_generate_text_default(VALUE self)
   return rb_str_new(buf, 26);
 }
 
-VALUE
+static VALUE
 ulid_rb_generate_binary_default(VALUE self)
 {
   ulid_generate_binary(default_generator);
   return rb_enc_str_new((const char *) default_generator->last, 16, encoding_binary);
 }
+
+static VALUE
+ulid_rb_generate_lex62_default(VALUE self)
+{
+  ulid_generate_binary(default_generator);
+  __uint128_t last = last_as_int(default_generator);
+  char buf[LEX62_WIDTH];
+  if (0 != lex62_encode(buf, last)) {
+    rb_raise(rb_eRuntimeError, "could not encode ULID as lex62 due to value overflow");
+  }
+  return rb_str_new(buf, LEX62_WIDTH);
+}
+
+static __uint128_t
+last_as_int(struct ulid_generator * gen)
+{
+  __uint128_t ret = 0;
+  int i;
+  for (i = 0; i < 16; i++) {
+    ret <<= 8;
+    ret |= gen->last[i];
+  }
+  return ret;
+}
+
+static const char LEX62_CHARSET[] = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
+
+int
+lex62_encode(char d[LEX62_WIDTH], __uint128_t val)
+{
+  for(int i = 0; i < LEX62_WIDTH; i++) {
+    d[LEX62_WIDTH-i-1] = LEX62_CHARSET[(int)(val % 62)];
+    val /= 62;
+  }
+  return (int) val; // should be 0 unless we overflowed
+}
+

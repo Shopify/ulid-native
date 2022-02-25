@@ -5,14 +5,16 @@ require_relative('test_helper')
 class ULIDTest < Minitest::Test
   TEXT = /^[0-9A-Z]{26}$/
   BINARY = /\A.{16}\z/m
+  LEX62 = /\A[0-9A-Za-z]{21}\z/
 
-  def test_generate
+  def test_default_generate
     assert_match(TEXT, ULID.generate_text)
     assert_match(BINARY, ULID.generate_binary)
+    assert_match(LEX62, ULID.generate_lex62)
   end
 
   def test_generator_flags
-    [ULID::FORMAT_TEXT, ULID::FORMAT_BINARY].each do |fmt|
+    [ULID::FORMAT_TEXT, ULID::FORMAT_BINARY, ULID::FORMAT_LEX62].each do |fmt|
       check_generator(ULID::Generator.new(fmt))
       check_generator(ULID::Generator.new(fmt, ULID::RELAXED))
       check_generator(ULID::Generator.new(fmt, ULID::SECURE))
@@ -35,6 +37,8 @@ class ULIDTest < Minitest::Test
       assert_match(TEXT, generator.generate)
     when ULID::FORMAT_BINARY
       assert_match(BINARY, generator.generate)
+    when ULID::FORMAT_LEX62
+      assert_match(LEX62, generator.generate)
     else
       raise("Unknown format: #{generator.instance_variable_get(:@format)}")
     end
