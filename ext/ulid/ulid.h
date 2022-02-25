@@ -16,6 +16,8 @@ struct ulid_generator {
     int flags;
     unsigned char i, j;
     unsigned char s[256];
+    // [SHOPIFY] added this field to use in ext.c
+    void * output_format;
 };
 
 /* Initialize a new ULID generator instance.

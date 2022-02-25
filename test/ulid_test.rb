@@ -7,27 +7,38 @@ class ULIDTest < Minitest::Test
   BINARY = /\A.{16}\z/m
 
   def test_generate
-    assert_match(TEXT, ULID.generate)
+    assert_match(TEXT, ULID.generate_text)
     assert_match(BINARY, ULID.generate_binary)
   end
 
   def test_generator_flags
-    check_generator(ULID::Generator.new)
-    check_generator(ULID::Generator.new(ULID::RELAXED))
-    check_generator(ULID::Generator.new(ULID::SECURE))
-    check_generator(ULID::Generator.new(ULID::PARANOID))
-    check_generator(ULID::Generator.new(ULID::RELAXED | ULID::SECURE))
-    check_generator(ULID::Generator.new(ULID::PARANOID | ULID::SECURE))
+    [ULID::FORMAT_TEXT, ULID::FORMAT_BINARY].each do |fmt|
+      check_generator(ULID::Generator.new(fmt))
+      check_generator(ULID::Generator.new(fmt, ULID::RELAXED))
+      check_generator(ULID::Generator.new(fmt, ULID::SECURE))
+      check_generator(ULID::Generator.new(fmt, ULID::PARANOID))
+      check_generator(ULID::Generator.new(fmt, ULID::RELAXED | ULID::SECURE))
+      check_generator(ULID::Generator.new(fmt, ULID::PARANOID | ULID::SECURE))
+    end
+  end
+
+  def check_encoding
+    gen = ULID::Generator.new(ULID::FORMAT_BINARY)
+    assert_equal(Encoding::BINARY, gen.generate.encoding)
   end
 
   private
 
   def check_generator(generator)
-    assert_equal(Encoding::BINARY, generator.generate_binary.encoding)
-    assert_match(TEXT, generator.generate)
-    assert_match(BINARY, generator.generate_binary)
+    case generator.instance_variable_get(:@format)
+    when ULID::FORMAT_TEXT
+      assert_match(TEXT, generator.generate)
+    when ULID::FORMAT_BINARY
+      assert_match(BINARY, generator.generate)
+    else
+      raise("Unknown format: #{generator.instance_variable_get(:@format)}")
+    end
     assert_no_repeats { generator.generate }
-    assert_no_repeats { generator.generate_binary }
   end
 
   def assert_no_repeats(&blk)
