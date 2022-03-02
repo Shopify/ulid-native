@@ -30,7 +30,7 @@ struct ulid_generator {
  * of the random field, which guarantees that overflow cannot occur.
  * Normally the chance of overflow is non-zero, but negligible. This
  * makes it zero. It doesn't make sense to use this flag in conjunction
- * with ULID_RELAX.
+ * with ULID_RELAXED.
  *
  * The ULID_SECURE flag doesn't fall back on userspace initialization if
  * system entropy could not be gathered. You _must_ check the return
